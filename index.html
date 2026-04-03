@@ -33,36 +33,7 @@ body {
   font-family: var(--sans);
   font-weight: 300;
   overflow-x: hidden;
-  cursor: none;
-}
-
-/* ── CUSTOM CURSOR ─────────────────────────────────────── */
-.cursor-dot {
-  width: 8px; height: 8px;
-  background: var(--gold);
-  border-radius: 50%;
-  position: fixed;
-  top: 0; left: 0;
-  pointer-events: none;
-  z-index: 9999;
-  transform: translate(-50%,-50%);
-  transition: transform 0.1s ease;
-}
-.cursor-ring {
-  width: 32px; height: 32px;
-  border: 1px solid rgba(184,146,74,0.5);
-  border-radius: 50%;
-  position: fixed;
-  top: 0; left: 0;
-  pointer-events: none;
-  z-index: 9998;
-  transform: translate(-50%,-50%);
-  transition: transform 0.35s cubic-bezier(0.25,0.46,0.45,0.94),
-              width 0.3s ease, height 0.3s ease, border-color 0.3s ease;
-}
-body.hovering .cursor-ring {
-  width: 56px; height: 56px;
-  border-color: var(--gold);
+  cursor: default;
 }
 
 /* ── NOISE TEXTURE OVERLAY ─────────────────────────────── */
@@ -405,49 +376,87 @@ section {
   color: var(--mist);
 }
 
-.gallery-strip {
+/* Desktop: 4-column masonry-style grid with intentional sizing */
+.gallery-grid {
+  max-width: 1200px;
+  margin: 0 auto;
   display: grid;
-  grid-template-columns: repeat(11, 1fr);
-  gap: 6px;
-  overflow: hidden;
+  grid-template-columns: repeat(4, 1fr);
+  grid-auto-rows: 220px;
+  gap: 8px;
 }
 
-.gallery-strip .g-item {
+/* First image: wide hero spanning 2 cols, 2 rows */
+.gallery-grid .g-item:nth-child(1) {
+  grid-column: span 2;
+  grid-row: span 2;
+}
+
+/* Tall accent images */
+.gallery-grid .g-item:nth-child(4) {
+  grid-row: span 2;
+}
+.gallery-grid .g-item:nth-child(9) {
+  grid-row: span 2;
+}
+
+.gallery-grid .g-item {
   position: relative;
   overflow: hidden;
-  aspect-ratio: 3/4;
-  cursor: none;
-}
-.gallery-strip .g-item:nth-child(2),
-.gallery-strip .g-item:nth-child(5),
-.gallery-strip .g-item:nth-child(8) {
-  aspect-ratio: 3/5;
-}
-.gallery-strip .g-item:nth-child(1),
-.gallery-strip .g-item:nth-child(11) {
-  grid-column: span 2;
-  aspect-ratio: 2/3;
+  cursor: pointer;
+  background: var(--cream);
 }
 
-.gallery-strip img {
-  width: 100%; height: 100%;
+.gallery-grid img {
+  width: 100%;
+  height: 100%;
   object-fit: cover;
   display: block;
-  transition: transform 0.7s cubic-bezier(0.25,0.46,0.45,0.94);
+  transition: transform 0.65s cubic-bezier(0.25,0.46,0.45,0.94);
 }
-.gallery-strip .g-item:hover img {
-  transform: scale(1.08);
+.gallery-grid .g-item:hover img {
+  transform: scale(1.06);
 }
 
 .g-item::after {
-  content:'';
+  content: '';
   position: absolute;
   inset: 0;
   background: rgba(26,23,20,0);
   transition: background 0.4s;
+  pointer-events: none;
 }
 .g-item:hover::after {
-  background: rgba(26,23,20,0.15);
+  background: rgba(26,23,20,0.12);
+}
+
+/* Zoom icon on hover */
+.g-item .g-zoom {
+  position: absolute;
+  bottom: 14px;
+  right: 14px;
+  width: 32px;
+  height: 32px;
+  border: 1px solid rgba(255,255,255,0.6);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transform: scale(0.7);
+  transition: opacity 0.3s, transform 0.3s;
+  z-index: 2;
+  pointer-events: none;
+}
+.g-item .g-zoom svg {
+  width: 14px; height: 14px;
+  stroke: white;
+  fill: none;
+  stroke-width: 1.5;
+}
+.g-item:hover .g-zoom {
+  opacity: 1;
+  transform: scale(1);
 }
 
 /* ── LOCATION ──────────────────────────────────────────── */
@@ -715,32 +724,37 @@ footer {
   display: none;
   position: fixed;
   inset: 0;
-  background: rgba(20,16,12,0.96);
+  background: rgba(20,16,12,0.97);
   z-index: 5000;
   justify-content: center;
   align-items: center;
+  user-select: none;
 }
 #lightbox.open { display: flex; }
-#lightbox img {
+
+#lightbox-img {
   max-width: 88vw;
-  max-height: 88vh;
+  max-height: 82vh;
   object-fit: contain;
   display: block;
+  transition: opacity 0.22s ease;
 }
+#lightbox-img.fading { opacity: 0; }
+
 #lightbox-close {
   position: absolute;
-  top: 32px; right: 40px;
-  color: rgba(255,255,255,0.5);
-  font-size: 1.4rem;
-  cursor: none;
+  top: 28px; right: 36px;
+  color: rgba(255,255,255,0.45);
+  cursor: pointer;
   letter-spacing: 0.15em;
-  font-size: 0.7rem;
+  font-size: 0.68rem;
   text-transform: uppercase;
   font-family: var(--sans);
+  font-weight: 300;
   transition: color 0.3s;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
 }
 #lightbox-close::before {
   content:'';
@@ -749,6 +763,46 @@ footer {
   background: currentColor;
 }
 #lightbox-close:hover { color: var(--gold); }
+
+/* Prev / Next arrows */
+.lb-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: 1px solid rgba(255,255,255,0.2);
+  color: rgba(255,255,255,0.5);
+  width: 48px; height: 48px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: border-color 0.3s, color 0.3s, background 0.3s;
+  z-index: 10;
+}
+.lb-arrow:hover {
+  border-color: var(--gold);
+  color: var(--gold);
+  background: rgba(184,146,74,0.08);
+}
+.lb-arrow svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 1.5; }
+#lb-prev { left: 24px; }
+#lb-next { right: 24px; }
+
+/* Counter */
+#lb-counter {
+  position: absolute;
+  bottom: 28px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.62rem;
+  letter-spacing: 0.25em;
+  color: rgba(255,255,255,0.3);
+  font-family: var(--sans);
+  font-weight: 300;
+}
+#lb-counter span { color: rgba(255,255,255,0.7); }
 
 /* ── SCROLL REVEAL ─────────────────────────────────────── */
 .reveal {
@@ -819,12 +873,24 @@ footer {
   #contact-inner { grid-template-columns: 1fr; gap: 40px; }
   footer { flex-direction: column; gap: 8px; padding: 24px; text-align: center; }
 
-  .gallery-strip { grid-template-columns: repeat(4, 1fr); }
-  .gallery-strip .g-item:nth-child(1),
-  .gallery-strip .g-item:nth-child(11) { grid-column: span 1; }
-  .gallery-strip .g-item:nth-child(2),
-  .gallery-strip .g-item:nth-child(5),
-  .gallery-strip .g-item:nth-child(8) { aspect-ratio: 3/4; }
+  /* Mobile gallery: 2-column uniform grid */
+  #gallery-section { padding: 0 16px 70px; }
+  .gallery-grid {
+    grid-template-columns: repeat(2, 1fr);
+    grid-auto-rows: 160px;
+  }
+  /* Reset all special sizing on mobile for consistency */
+  .gallery-grid .g-item:nth-child(1),
+  .gallery-grid .g-item:nth-child(4),
+  .gallery-grid .g-item:nth-child(9) {
+    grid-column: span 1;
+    grid-row: span 1;
+  }
+  /* Keep first one a bit taller as subtle hero */
+  .gallery-grid .g-item:nth-child(1) {
+    grid-column: span 2;
+    grid-row: span 1;
+  }
 
   .specs-list { grid-template-columns: 1fr; }
   .about-img-frame { display: none; }
@@ -833,10 +899,6 @@ footer {
 </head>
 
 <body>
-
-<!-- CURSOR -->
-<div class="cursor-dot" id="cursorDot"></div>
-<div class="cursor-ring" id="cursorRing"></div>
 
 <!-- HEADER -->
 <header id="site-header">
@@ -911,18 +973,18 @@ footer {
     <p class="section-label" data-key="section_gallery">Gallery</p>
     <span class="gallery-count">11 fotografie</span>
   </div>
-  <div class="gallery-strip reveal">
-    <div class="g-item"><img src="images/background.jpg" alt=""></div>
-    <div class="g-item"><img src="images/camera1.jpg" alt=""></div>
-    <div class="g-item"><img src="images/camera2.jpg" alt=""></div>
-    <div class="g-item"><img src="images/cucina1.jpg" alt=""></div>
-    <div class="g-item"><img src="images/salotto2.jpg" alt=""></div>
-    <div class="g-item"><img src="images/giardino1.jpg" alt=""></div>
-    <div class="g-item"><img src="images/cucinino.jpg" alt=""></div>
-    <div class="g-item"><img src="images/dettaglio.jpg" alt=""></div>
-    <div class="g-item"><img src="images/panoramicamaps.jpg" alt=""></div>
-    <div class="g-item"><img src="images/spiaggia.jpg" alt=""></div>
-    <div class="g-item"><img src="images/planimetria.jpg" alt=""></div>
+  <div class="gallery-grid reveal">
+    <div class="g-item"><img src="images/background.jpg" alt="Casa Mimosa"><div class="g-zoom"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><line x1="16.5" y1="16.5" x2="22" y2="22"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg></div></div>
+    <div class="g-item"><img src="images/camera1.jpg" alt="Camera 1"><div class="g-zoom"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><line x1="16.5" y1="16.5" x2="22" y2="22"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg></div></div>
+    <div class="g-item"><img src="images/camera2.jpg" alt="Camera 2"><div class="g-zoom"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><line x1="16.5" y1="16.5" x2="22" y2="22"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg></div></div>
+    <div class="g-item"><img src="images/cucina1.jpg" alt="Cucina"><div class="g-zoom"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><line x1="16.5" y1="16.5" x2="22" y2="22"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg></div></div>
+    <div class="g-item"><img src="images/salotto2.jpg" alt="Salotto"><div class="g-zoom"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><line x1="16.5" y1="16.5" x2="22" y2="22"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg></div></div>
+    <div class="g-item"><img src="images/giardino1.jpg" alt="Giardino"><div class="g-zoom"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><line x1="16.5" y1="16.5" x2="22" y2="22"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg></div></div>
+    <div class="g-item"><img src="images/cucinino.jpg" alt="Cucinino"><div class="g-zoom"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><line x1="16.5" y1="16.5" x2="22" y2="22"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg></div></div>
+    <div class="g-item"><img src="images/dettaglio.jpg" alt="Dettaglio"><div class="g-zoom"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><line x1="16.5" y1="16.5" x2="22" y2="22"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg></div></div>
+    <div class="g-item"><img src="images/panoramicamaps.jpg" alt="Panoramica"><div class="g-zoom"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><line x1="16.5" y1="16.5" x2="22" y2="22"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg></div></div>
+    <div class="g-item"><img src="images/spiaggia.jpg" alt="Spiaggia"><div class="g-zoom"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><line x1="16.5" y1="16.5" x2="22" y2="22"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg></div></div>
+    <div class="g-item"><img src="images/planimetria.jpg" alt="Planimetria"><div class="g-zoom"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><line x1="16.5" y1="16.5" x2="22" y2="22"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg></div></div>
   </div>
 </div>
 
@@ -1025,7 +1087,14 @@ footer {
 <!-- LIGHTBOX -->
 <div id="lightbox">
   <span id="lightbox-close">Chiudi</span>
+  <button class="lb-arrow" id="lb-prev" aria-label="Previous">
+    <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+  </button>
   <img id="lightbox-img" alt="">
+  <button class="lb-arrow" id="lb-next" aria-label="Next">
+    <svg viewBox="0 0 24 24"><polyline points="9 6 15 12 9 18"/></svg>
+  </button>
+  <div id="lb-counter"><span id="lb-cur">1</span> / <span id="lb-total">11</span></div>
 </div>
 
 <script>
@@ -1233,42 +1302,69 @@ const revealObserver = new IntersectionObserver((entries) => {
 
 document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
 
-/* ── CUSTOM CURSOR ─────────────────────────────────────── */
-const dot  = document.getElementById('cursorDot');
-const ring = document.getElementById('cursorRing');
-let mx = 0, my = 0, rx = 0, ry = 0;
-document.addEventListener('mousemove', e => { mx = e.clientX; my = e.clientY; });
-function animCursor() {
-  rx += (mx - rx) * 0.12;
-  ry += (my - ry) * 0.12;
-  dot.style.left  = mx + 'px';
-  dot.style.top   = my + 'px';
-  ring.style.left = rx + 'px';
-  ring.style.top  = ry + 'px';
-  requestAnimationFrame(animCursor);
+/* ── LIGHTBOX with swipe & keyboard ──────────────────────── */
+const galleryImages = Array.from(document.querySelectorAll('.gallery-grid .g-item img'));
+let lbIndex = 0;
+
+const lb        = document.getElementById('lightbox');
+const lbImg     = document.getElementById('lightbox-img');
+const lbCur     = document.getElementById('lb-cur');
+const lbTotal   = document.getElementById('lb-total');
+
+lbTotal.textContent = galleryImages.length;
+
+function lbShow(idx) {
+  lbIndex = (idx + galleryImages.length) % galleryImages.length;
+  lbImg.classList.add('fading');
+  setTimeout(() => {
+    lbImg.src = galleryImages[lbIndex].src;
+    lbImg.alt = galleryImages[lbIndex].alt;
+    lbCur.textContent = lbIndex + 1;
+    lbImg.classList.remove('fading');
+  }, 180);
 }
-animCursor();
 
-document.querySelectorAll('a,button,.g-item,#lightbox-close').forEach(el => {
-  el.addEventListener('mouseenter', () => document.body.classList.add('hovering'));
-  el.addEventListener('mouseleave', () => document.body.classList.remove('hovering'));
+function lbOpen(idx) {
+  lbShow(idx);
+  lb.classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function lbClose() {
+  lb.classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+// click on gallery images
+galleryImages.forEach((img, i) => {
+  img.parentElement.addEventListener('click', () => lbOpen(i));
 });
 
-/* ── LIGHTBOX ──────────────────────────────────────────── */
-document.querySelectorAll('.g-item img, .about-img-wrap img').forEach(img => {
-  img.addEventListener('click', () => {
-    document.getElementById('lightbox-img').src = img.src;
-    document.getElementById('lightbox').classList.add('open');
-  });
-});
-document.getElementById('lightbox').addEventListener('click', e => {
-  if (e.target.id === 'lightbox' || e.target.id === 'lightbox-close') {
-    document.getElementById('lightbox').classList.remove('open');
-  }
-});
+// close
+document.getElementById('lightbox-close').addEventListener('click', lbClose);
+lb.addEventListener('click', e => { if (e.target === lb) lbClose(); });
+
+// arrows
+document.getElementById('lb-prev').addEventListener('click', e => { e.stopPropagation(); lbShow(lbIndex - 1); });
+document.getElementById('lb-next').addEventListener('click', e => { e.stopPropagation(); lbShow(lbIndex + 1); });
+
+// keyboard
 document.addEventListener('keydown', e => {
-  if (e.key === 'Escape') document.getElementById('lightbox').classList.remove('open');
+  if (!lb.classList.contains('open')) return;
+  if (e.key === 'Escape')       lbClose();
+  if (e.key === 'ArrowLeft')    lbShow(lbIndex - 1);
+  if (e.key === 'ArrowRight')   lbShow(lbIndex + 1);
 });
+
+// touch swipe
+let touchStartX = 0;
+lb.addEventListener('touchstart', e => { touchStartX = e.changedTouches[0].clientX; }, { passive: true });
+lb.addEventListener('touchend', e => {
+  const dx = e.changedTouches[0].clientX - touchStartX;
+  if (Math.abs(dx) > 40) {
+    dx < 0 ? lbShow(lbIndex + 1) : lbShow(lbIndex - 1);
+  }
+}, { passive: true });
 
 /* ── HAMBURGER ─────────────────────────────────────────── */
 function toggleMenu() {
